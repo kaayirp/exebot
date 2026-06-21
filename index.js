@@ -83,7 +83,7 @@ client.on('messageCreate', async message => {
     if (message.content === '!ticketsetup') {
 
         const embed = new EmbedBuilder()
-            .setColor('#0048ff')
+            .setColor('#7F00FF')
             .setTitle('🎫 EXE SUPPORT')
             .setDescription(`
 ──────────────────────────────
@@ -92,8 +92,8 @@ Need help?
 
 Click the button below to create a support ticket.
             `)
-            .setThumbnail('https://media.discordapp.net/attachments/1459397928173961216/1459398479703969804/Picsart_26-01-10_09-35-13-170.png?ex=6a0fd6bf&is=6a0e853f&hm=8f06f97747a0315d4eb15adeb48959b58927d6aeb8a1f363524ebf6349edca36&=&format=webp&quality=lossless&width=968&height=968')
-            .setImage('https://media.discordapp.net/attachments/1259856192969113600/1509856131063742564/file_0000000099bc71fa9a36c816d02d4b36.png?ex=6a1ab299&is=6a196119&hm=9ff353ae3e750e3e58d51e56d237c944f3b61ab3ae52d2eaa404042ae0c6df68&=&format=webp&quality=lossless&width=825&height=465');
+            .setThumbnail('https://cdn.discordapp.com/attachments/1259856192969113600/1518363715316093048/0622_1.gif?ex=6a39a5e7&is=6a385467&hm=140db728bb36c0ff78cc3370869c85d0814818fee41f9da1f2b98e438c3e6802&')
+            .setImage('https://media.discordapp.net/attachments/1259856192969113600/1518371090873847929/0622_1.gif?ex=6a39acc6&is=6a385b46&hm=bd62b2e121338a7b914b6aa8e3d52ec76563f704ed2887d97da3c4fcdb86b98a&=');
 
         const button = new ButtonBuilder()
             .setCustomId('open_ticket')
@@ -208,7 +208,7 @@ Welcome ${interaction.user}
 
 Explain your issue and wait for support.
             `)
-            .setThumbnail('https://media.discordapp.net/attachments/1259856192969113600/1506893108695011348/file_0000000089d4720bb22120b4d0dc4c85.png?ex=6a0feb11&is=6a0e9991&hm=8fc43aa65aeb323fa5a4baf1882086953a1d5efce5741ac04d4bc0fe21e42946&=&format=webp&quality=lossless&width=864&height=864');
+            .setThumbnail('https://cdn.discordapp.com/attachments/1259856192969113600/1518363715316093048/0622_1.gif?ex=6a39a5e7&is=6a385467&hm=140db728bb36c0ff78cc3370869c85d0814818fee41f9da1f2b98e438c3e6802&');
 
         channel.send({
             embeds: [embed],
