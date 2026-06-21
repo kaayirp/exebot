@@ -49,8 +49,8 @@ Click the button below.
 
 ⚡ Verification is instant.
             `)
-            .setThumbnail('https://media.discordapp.net/attachments/1459397928173961216/1459398479703969804/Picsart_26-01-10_09-35-13-170.png?ex=6a0fd6bf&is=6a0e853f&hm=8f06f97747a0315d4eb15adeb48959b58927d6aeb8a1f363524ebf6349edca36&=&format=webp&quality=lossless&width=968&height=968')
-            .setImage('https://media.discordapp.net/attachments/1259856192969113600/1507030907360645141/standard_2.gif?ex=6a106b67&is=6a0f19e7&hm=13ab0db9c7ccce588b2a598c97ea7c78ead1bbd75811e79963fdc596490b0c28&=&width=550&height=309');
+            .setThumbnail('https://cdn.discordapp.com/attachments/1259856192969113600/1518363715316093048/0622_1.gif?ex=6a39a5e7&is=6a385467&hm=140db728bb36c0ff78cc3370869c85d0814818fee41f9da1f2b98e438c3e6802&')
+            .setImage('https://cdn.discordapp.com/attachments/1259856192969113600/1518365172031291402/0622_1.gif?ex=6a39a742&is=6a3855c2&hm=5fd3701762765f006f420bd04fb469bae1fa4a884b7371f6666baa91b1dca164&');
 
         const button = new ButtonBuilder()
             .setCustomId('verify_button')
