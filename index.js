@@ -37,7 +37,7 @@ client.on('messageCreate', async message => {
     if (message.content === '!verifysetup') {
 
         const embed = new EmbedBuilder()
-            .setColor('#57F287')
+            .setColor('#7F00FF')
             .setTitle('🔰 Welcome to the Server!')
             .setDescription(`
 Hey there 👋
