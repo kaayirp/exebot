@@ -141,7 +141,7 @@ client.on('interactionCreate', async interaction => {
         await interaction.editReply(`✅ Ticket created: ${channel}`);
 
     } catch (err) {
-        console.error(err);
+        console.log(err);
         await interaction.editReply('❌ Error creating ticket');
     }
 });
