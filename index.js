@@ -5,7 +5,6 @@ const {
     GatewayIntentBits,
     EmbedBuilder,
     ActionRowBuilder,
-    StringSelectMenuBuilder,
     ButtonBuilder,
     ButtonStyle,
     PermissionsBitField,
@@ -13,11 +12,7 @@ const {
 } = require('discord.js');
 
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
-    ]
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
 client.once('ready', () => {
@@ -25,75 +20,50 @@ client.once('ready', () => {
 });
 
 
-// ================= TICKET PANEL COMMAND =================
+// ===== PANEL COMMAND =====
 
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
 
-    if (message.content === '!ticketsetup') {
+    if (message.content === '!ticket') {
 
         const embed = new EmbedBuilder()
             .setColor('#2b2d31')
-            .setTitle('📩 SUPPORT TICKETS')
-            .setDescription(`
-**📌 Rules**
-• Explain clearly  
-• No spam  
-• No ping staff  
-• Follow rules  
-            `)
-            .setImage('https://media.discordapp.net/attachments/1259856192969113600/1518371090873847929/0622_1.gif');
+            .setTitle('🎫 SUPPORT TICKET')
+            .setDescription('Click the button below to create a ticket.');
 
-        const menu = new StringSelectMenuBuilder()
-            .setCustomId('ticket_select')
-            .setPlaceholder('Select a topic...')
-            .addOptions([
-                {
-                    label: 'Support Ticket',
-                    value: 'support',
-                    emoji: '📩'
-                },
-                {
-                    label: 'Buy Ticket',
-                    value: 'buy',
-                    emoji: '💰'
-                }
-            ]);
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('create_ticket')
+                .setLabel('Create Ticket')
+                .setStyle(ButtonStyle.Primary)
+        );
 
-        const row = new ActionRowBuilder().addComponents(menu);
-
-        await message.channel.send({
-            embeds: [embed],
-            components: [row]
-        });
+        message.channel.send({ embeds: [embed], components: [row] });
     }
 });
 
 
-// ================= INTERACTION =================
+// ===== BUTTON CLICK =====
 
 client.on('interactionCreate', async interaction => {
 
-    if (!interaction.isStringSelectMenu()) return;
+    if (!interaction.isButton()) return;
 
-    if (interaction.customId !== 'ticket_select') return;
+    if (interaction.customId === 'create_ticket') {
 
-    await interaction.deferReply({ ephemeral: true }); // 🔥 FIX
-
-    try {
-
-        const choice = interaction.values[0];
+        await interaction.reply({ content: 'Creating ticket...', ephemeral: true });
 
         const existing = interaction.guild.channels.cache.find(
             c => c.topic === interaction.user.id
         );
 
         if (existing) {
-            return interaction.editReply(`❌ You already have a ticket: ${existing}`);
+            return interaction.followUp({ content: `You already have a ticket: ${existing}`, ephemeral: true });
         }
 
         const channel = await interaction.guild.channels.create({
-            name: `${choice}-${interaction.user.username}`.toLowerCase(),
+            name: `ticket-${interaction.user.username}`,
             type: ChannelType.GuildText,
             parent: process.env.TICKET_CATEGORY_ID,
             topic: interaction.user.id,
@@ -105,63 +75,39 @@ client.on('interactionCreate', async interaction => {
                 },
                 {
                     id: interaction.user.id,
-                    allow: [
-                        PermissionsBitField.Flags.ViewChannel,
-                        PermissionsBitField.Flags.SendMessages
-                    ]
+                    allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]
                 },
                 {
                     id: process.env.STAFF_ROLE_ID,
-                    allow: [
-                        PermissionsBitField.Flags.ViewChannel,
-                        PermissionsBitField.Flags.SendMessages
-                    ]
+                    allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]
                 }
             ]
         });
 
-        const embed = new EmbedBuilder()
-            .setColor('#2b2d31')
-            .setTitle('🎫 Ticket Opened')
-            .setDescription('Explain your issue, staff will respond.');
+        const closeBtn = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('close_ticket')
+                .setLabel('Close Ticket')
+                .setStyle(ButtonStyle.Danger)
+        );
 
-        const closeBtn = new ButtonBuilder()
-            .setCustomId('close_ticket')
-            .setLabel('Close Ticket')
-            .setStyle(ButtonStyle.Danger);
-
-        const row = new ActionRowBuilder().addComponents(closeBtn);
-
-        await channel.send({
-            content: `<@${interaction.user.id}> <@&${process.env.STAFF_ROLE_ID}>`,
-            embeds: [embed],
-            components: [row]
+        channel.send({
+            content: `<@${interaction.user.id}>`,
+            embeds: [new EmbedBuilder().setDescription('Support will be with you shortly.')],
+            components: [closeBtn]
         });
+    }
 
-        await interaction.editReply(`✅ Ticket created: ${channel}`);
 
-    } catch (err) {
-        console.log(err);
-        await interaction.editReply('❌ Error creating ticket');
+    // ===== CLOSE =====
+
+    if (interaction.customId === 'close_ticket') {
+        await interaction.reply({ content: 'Closing ticket...', ephemeral: true });
+
+        setTimeout(() => {
+            interaction.channel.delete().catch(() => {});
+        }, 3000);
     }
 });
-
-
-// ================= CLOSE BUTTON =================
-
-client.on('interactionCreate', async interaction => {
-
-    if (!interaction.isButton()) return;
-    if (interaction.customId !== 'close_ticket') return;
-
-    await interaction.reply({ content: 'Closing ticket...', ephemeral: true });
-
-    setTimeout(() => {
-        interaction.channel.delete().catch(() => {});
-    }, 3000);
-});
-
-
-// ================= LOGIN =================
 
 client.login(process.env.TOKEN);
