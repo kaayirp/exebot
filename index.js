@@ -48,7 +48,8 @@ please verify yourself.
 Click the button below.
 
 ⚡ Verification is instant.
-            `);
+            `)
+            .setImage('https://media.discordapp.net/attachments/1259856192969113600/1518365172031291402/0622_1.gif');
 
         const button = new ButtonBuilder()
             .setCustomId('verify_button')
@@ -67,7 +68,7 @@ Click the button below.
 
 
 // ====================================
-// TICKET PANEL (DROPDOWN STYLE)
+// TICKET PANEL (WITH IMAGE)
 // ====================================
 
 client.on('messageCreate', async message => {
@@ -89,7 +90,8 @@ client.on('messageCreate', async message => {
 5️⃣ Follow server rules  
 
 ❗ Failure may result in closure or ban  
-            `);
+            `)
+            .setImage('https://media.discordapp.net/attachments/1259856192969113600/1518371090873847929/0622_1.gif');
 
         const select = new StringSelectMenuBuilder()
             .setCustomId('ticket_select')
@@ -125,7 +127,7 @@ client.on('messageCreate', async message => {
 
 client.on('interactionCreate', async interaction => {
 
-    // ================= VERIFY =================
+    // VERIFY BUTTON
     if (interaction.isButton() && interaction.customId === 'verify_button') {
 
         const verifiedRole = interaction.guild.roles.cache.get(process.env.VERIFIED_ROLE_ID);
@@ -151,7 +153,7 @@ client.on('interactionCreate', async interaction => {
     }
 
 
-    // ================= DROPDOWN =================
+    // DROPDOWN TICKET
     if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_select') {
 
         const choice = interaction.values[0];
@@ -227,7 +229,7 @@ Staff will respond shortly.
     }
 
 
-    // ================= CLOSE =================
+    // CLOSE TICKET
     if (interaction.isButton() && interaction.customId === 'close_ticket') {
 
         await interaction.reply({
