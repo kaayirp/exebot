@@ -26,53 +26,34 @@ client.once('ready', () => {
 });
 
 
-// ====================================
-// VERIFY PANEL
-// ====================================
+// ================= VERIFY PANEL =================
 
 client.on('messageCreate', async message => {
-
     if (message.author.bot) return;
 
     if (message.content === '!verifysetup') {
 
         const embed = new EmbedBuilder()
             .setColor('#7F00FF')
-            .setTitle('🔰 Welcome to the Server!')
-            .setDescription(`
-Hey there 👋
-
-Before accessing the full server,
-please verify yourself.
-
-Click the button below.
-
-⚡ Verification is instant.
-            `)
+            .setTitle('🔰 Welcome!')
+            .setDescription('Click below to verify yourself.')
             .setImage('https://media.discordapp.net/attachments/1259856192969113600/1518365172031291402/0622_1.gif');
 
-        const button = new ButtonBuilder()
-            .setCustomId('verify_button')
-            .setLabel('Verify Me')
-            .setEmoji('✅')
-            .setStyle(ButtonStyle.Success);
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('verify_button')
+                .setLabel('Verify Me')
+                .setStyle(ButtonStyle.Success)
+        );
 
-        const row = new ActionRowBuilder().addComponents(button);
-
-        message.channel.send({
-            embeds: [embed],
-            components: [row]
-        });
+        message.channel.send({ embeds: [embed], components: [row] });
     }
 });
 
 
-// ====================================
-// TICKET PANEL (WITH IMAGE)
-// ====================================
+// ================= TICKET PANEL =================
 
 client.on('messageCreate', async message => {
-
     if (message.author.bot) return;
 
     if (message.content === '!ticketsetup') {
@@ -81,15 +62,11 @@ client.on('messageCreate', async message => {
             .setColor('#2b2d31')
             .setTitle('🎫 SUPPORT TICKETS')
             .setDescription(`
-**📌 Important Rules:**
-
-1️⃣ Tickets without clear message will be closed  
-2️⃣ Explain your issue properly  
-3️⃣ Don’t spam multiple tickets  
-4️⃣ No pinging staff  
-5️⃣ Follow server rules  
-
-❗ Failure may result in closure or ban  
+**📌 Rules**
+• Explain clearly  
+• No spam  
+• No ping staff  
+• Follow rules  
             `)
             .setImage('https://media.discordapp.net/attachments/1259856192969113600/1518371090873847929/0622_1.gif');
 
@@ -99,146 +76,129 @@ client.on('messageCreate', async message => {
             .addOptions([
                 {
                     label: 'Buy Ticket',
-                    description: 'Purchase scripts / services',
-                    emoji: '💰',
-                    value: 'buy_ticket'
+                    value: 'buy_ticket',
+                    emoji: '💰'
                 },
                 {
                     label: 'Support Ticket',
-                    description: 'Get help from staff',
-                    emoji: '📩',
-                    value: 'support_ticket'
+                    value: 'support_ticket',
+                    emoji: '📩'
                 }
             ]);
 
         const row = new ActionRowBuilder().addComponents(select);
 
-        message.channel.send({
-            embeds: [embed],
-            components: [row]
-        });
+        message.channel.send({ embeds: [embed], components: [row] });
     }
 });
 
 
-// ====================================
-// INTERACTIONS
-// ====================================
+// ================= INTERACTIONS =================
 
 client.on('interactionCreate', async interaction => {
 
-    // VERIFY BUTTON
-    if (interaction.isButton() && interaction.customId === 'verify_button') {
+    try {
 
-        const verifiedRole = interaction.guild.roles.cache.get(process.env.VERIFIED_ROLE_ID);
-        const unverifiedRole = interaction.guild.roles.cache.get(process.env.UNVERIFIED_ROLE_ID);
+        // ===== VERIFY =====
+        if (interaction.isButton() && interaction.customId === 'verify_button') {
 
-        if (!verifiedRole) {
-            return interaction.reply({
-                content: 'Verified role not found.',
-                ephemeral: true
+            await interaction.deferReply({ ephemeral: true });
+
+            const verifiedRole = interaction.guild.roles.cache.get(process.env.VERIFIED_ROLE_ID);
+            const unverifiedRole = interaction.guild.roles.cache.get(process.env.UNVERIFIED_ROLE_ID);
+
+            if (!verifiedRole) return interaction.editReply('Role not found');
+
+            if (unverifiedRole) await interaction.member.roles.remove(unverifiedRole);
+            await interaction.member.roles.add(verifiedRole);
+
+            return interaction.editReply('✅ Verified!');
+        }
+
+
+        // ===== DROPDOWN =====
+        if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_select') {
+
+            await interaction.deferReply({ ephemeral: true });
+
+            const choice = interaction.values[0];
+
+            const existing = interaction.guild.channels.cache.find(
+                c => c.topic === interaction.user.id
+            );
+
+            if (existing) {
+                return interaction.editReply(`❌ Already have ticket: ${existing}`);
+            }
+
+            const channel = await interaction.guild.channels.create({
+                name: `${choice}-${interaction.user.username}`.toLowerCase(),
+                type: ChannelType.GuildText,
+                parent: process.env.TICKET_CATEGORY_ID,
+                topic: interaction.user.id,
+
+                permissionOverwrites: [
+                    {
+                        id: interaction.guild.id,
+                        deny: [PermissionsBitField.Flags.ViewChannel]
+                    },
+                    {
+                        id: interaction.user.id,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages
+                        ]
+                    },
+                    {
+                        id: process.env.STAFF_ROLE_ID,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages
+                        ]
+                    }
+                ]
             });
-        }
 
-        if (unverifiedRole) {
-            await interaction.member.roles.remove(unverifiedRole);
-        }
+            const embed = new EmbedBuilder()
+                .setColor('#2b2d31')
+                .setTitle(`🎫 ${choice.replace('_', ' ').toUpperCase()}`)
+                .setDescription(`Explain your issue. Staff will respond.`);
 
-        await interaction.member.roles.add(verifiedRole);
+            const row = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId('close_ticket')
+                    .setLabel('Close Ticket')
+                    .setStyle(ButtonStyle.Danger)
+            );
 
-        return interaction.reply({
-            content: '✅ You are now verified!',
-            ephemeral: true
-        });
-    }
-
-
-    // DROPDOWN TICKET
-    if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_select') {
-
-        const choice = interaction.values[0];
-
-        const existing = interaction.guild.channels.cache.find(
-            c => c.topic === interaction.user.id
-        );
-
-        if (existing) {
-            return interaction.reply({
-                content: `❌ You already have a ticket: ${existing}`,
-                ephemeral: true
+            await channel.send({
+                content: `<@${interaction.user.id}> <@&${process.env.STAFF_ROLE_ID}>`,
+                embeds: [embed],
+                components: [row]
             });
+
+            return interaction.editReply(`✅ Created: ${channel}`);
         }
 
-        const channel = await interaction.guild.channels.create({
-            name: `${choice}-${interaction.user.username}`.toLowerCase(),
-            type: ChannelType.GuildText,
-            parent: process.env.TICKET_CATEGORY_ID,
-            topic: interaction.user.id,
 
-            permissionOverwrites: [
-                {
-                    id: interaction.guild.id,
-                    deny: [PermissionsBitField.Flags.ViewChannel]
-                },
-                {
-                    id: interaction.user.id,
-                    allow: [
-                        PermissionsBitField.Flags.ViewChannel,
-                        PermissionsBitField.Flags.SendMessages,
-                        PermissionsBitField.Flags.ReadMessageHistory
-                    ]
-                },
-                {
-                    id: process.env.STAFF_ROLE_ID,
-                    allow: [
-                        PermissionsBitField.Flags.ViewChannel,
-                        PermissionsBitField.Flags.SendMessages,
-                        PermissionsBitField.Flags.ReadMessageHistory
-                    ]
-                }
-            ]
-        });
+        // ===== CLOSE =====
+        if (interaction.isButton() && interaction.customId === 'close_ticket') {
 
-        const embed = new EmbedBuilder()
-            .setColor('#2b2d31')
-            .setTitle(`🎫 ${choice.replace('_', ' ').toUpperCase()}`)
-            .setDescription(`
-Hey ${interaction.user} 👋
+            await interaction.reply({ content: 'Closing...', ephemeral: true });
 
-Please explain your issue clearly.  
-Staff will respond shortly.
-            `);
+            setTimeout(() => {
+                interaction.channel.delete();
+            }, 3000);
+        }
 
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId('close_ticket')
-                .setLabel('Close Ticket')
-                .setStyle(ButtonStyle.Danger)
-        );
+    } catch (err) {
+        console.error(err);
 
-        channel.send({
-            content: `<@${interaction.user.id}> <@&${process.env.STAFF_ROLE_ID}>`,
-            embeds: [embed],
-            components: [row]
-        });
-
-        return interaction.reply({
-            content: `✅ Ticket created: ${channel}`,
-            ephemeral: true
-        });
-    }
-
-
-    // CLOSE TICKET
-    if (interaction.isButton() && interaction.customId === 'close_ticket') {
-
-        await interaction.reply({
-            content: '🔒 Closing ticket in 5 seconds...'
-        });
-
-        setTimeout(() => {
-            interaction.channel.delete();
-        }, 5000);
+        if (interaction.replied || interaction.deferred) {
+            interaction.followUp({ content: '❌ Error', ephemeral: true });
+        } else {
+            interaction.reply({ content: '❌ Error', ephemeral: true });
+        }
     }
 });
 
